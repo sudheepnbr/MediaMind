@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediaMind v3.5 | Integrated OIH Hub</title>
+    <title>MediaMind v3.6 | Seek & Time Master</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
@@ -30,22 +30,20 @@
             overflow: hidden;
         }
 
-        /* --- THE MAIN GREEN-BORDER CONSOLE --- */
         .master-console {
             width: 95vw;
             max-width: 900px;
             background: var(--dark-console);
             border-radius: 40px;
-            padding: 30px;
+            padding: 25px;
             border: 6px solid var(--green);
             box-shadow: 0 30px 60px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            transition: var(--transition);
+            gap: 15px;
         }
 
-        /* --- COLLAPSIBLE MEDIA STAGE --- */
+        /* --- STAGE AREA --- */
         .stage-area {
             width: 100%;
             aspect-ratio: 16 / 9;
@@ -55,101 +53,79 @@
             overflow: hidden;
             border: 2px solid #333;
             transition: var(--transition);
-            transform-origin: top;
         }
 
-        .stage-area.collapsed {
-            height: 0;
-            margin: 0;
-            opacity: 0;
-            aspect-ratio: auto;
-            border: 0;
-            transform: scaleY(0);
-        }
+        .stage-area.collapsed { height: 0; margin: 0; opacity: 0; aspect-ratio: auto; border: 0; transform: scaleY(0); }
 
         #visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .video-js { position: absolute !important; top: 0; left: 0; z-index: 2; opacity: 0; transition: opacity 0.5s; }
+        .video-js { position: absolute !important; top: 0; left: 0; z-index: 2; opacity: 0; }
         .video-active { opacity: 1 !important; }
 
+        /* --- NEW: SEEKBAR & TIMER OVERLAY --- */
+        .playback-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            color: var(--white);
+            font-size: 0.75rem;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        #seekbar {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        #seekbar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--gold);
+        }
+
         .track-info {
-            position: absolute; bottom: 20px; left: 20px;
+            position: absolute; top: 20px; left: 20px;
             background: rgba(0,0,0,0.8);
-            padding: 10px 20px;
-            border-radius: 15px;
+            padding: 8px 15px;
+            border-radius: 12px;
             border-left: 4px solid var(--green);
             z-index: 10;
         }
 
-        .track-title { color: #fff; font-size: 1rem; margin: 0; font-weight: 800; }
-        .track-status { color: var(--green); font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .track-title { color: #fff; font-size: 0.9rem; margin: 0; }
 
-        /* --- FLOATING CONTROLS (From your image) --- */
-        .controls-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 25px;
-            padding: 10px 0;
-        }
+        /* --- BUTTONS & DSP (Standardized) --- */
+        .controls-row { display: flex; justify-content: center; gap: 20px; padding: 5px 0; }
+        .neu-btn { width: 55px; height: 55px; background: var(--cream-btn); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.3); cursor: pointer; }
+        .neu-btn.play-toggle { background: var(--green); width: 70px; height: 70px; color: white; }
 
-        .neu-btn {
-            width: 60px; height: 60px;
-            background: var(--cream-btn);
-            border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            border: none;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: 0.2s;
-            color: #333;
-        }
+        .dsp-panel { background: #fff; border-radius: 25px; padding: 15px; display: flex; justify-content: space-around; height: 130px; box-shadow: inset 0 5px 15px rgba(0,0,0,0.2); }
+        .eq-col { display: flex; flex-direction: column; align-items: center; gap: 8px; justify-content: flex-end; }
+        .eq-slider { -webkit-appearance: slider-vertical; width: 6px; height: 75px; background: #ddd; }
+        .eq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--blue-slider); border-radius: 50%; cursor: pointer; border: 2px solid white; }
+        .eq-label { font-size: 0.65rem; color: #444; font-weight: 900; }
 
-        .neu-btn:active { transform: scale(0.9); }
-        .neu-btn.play-toggle { background: var(--green); width: 80px; height: 80px; color: white; }
-
-        /* --- BLUE SLIDER DSP PANEL (From your image) --- */
-        .dsp-panel {
-            background: #fff;
-            border-radius: 25px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-around;
-            height: 140px;
-            box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .eq-col { display: flex; flex-direction: column; align-items: center; gap: 10px; justify-content: flex-end; }
-        
-        .eq-slider {
-            -webkit-appearance: slider-vertical;
-            width: 8px;
-            height: 80px;
-            background: #ddd;
-            outline: none;
-        }
-
-        /* Styling the slider thumb to match your blue circles */
-        .eq-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px; height: 18px;
-            background: var(--blue-slider);
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid white;
-        }
-
-        .eq-label { font-size: 0.7rem; color: #444; font-weight: 900; }
-
-        /* --- BRANDING FOOTER --- */
-        .brand-footer {
-            background: var(--cream-btn);
-            border-radius: 20px;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-        }
+        .brand-footer { background: var(--cream-btn); border-radius: 20px; padding: 12px; display: flex; justify-content: center; align-items: center; gap: 15px; }
     </style>
 </head>
 <body>
@@ -158,19 +134,27 @@
     <div class="stage-area collapsed" id="stage">
         <canvas id="visualizer"></canvas>
         <video id="vjs_engine" class="video-js vjs-fluid" playsinline></video>
+        
         <div class="track-info">
-            <h2 class="track-title" id="name-display">MediaMind v3.5</h2>
-            <p class="track-status" id="status-display">Ready to Stream</p>
+            <h2 class="track-title" id="name-display">MediaMind v3.6</h2>
+        </div>
+
+        <div class="playback-overlay">
+            <input type="range" id="seekbar" min="0" max="100" value="0">
+            <div class="time-display">
+                <span id="cur-time">0:00</span>
+                <span id="dur-time">0:00</span>
+            </div>
         </div>
     </div>
 
     <div class="controls-row">
-        <button class="neu-btn" onclick="openMedia()"><svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></button>
-        <button class="neu-btn" onclick="prev()"><svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button class="neu-btn" onclick="openMedia()"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></button>
+        <button class="neu-btn" onclick="prev()"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
         <button class="neu-btn play-toggle" onclick="toggle()">
-            <svg id="pIcon" width="35" height="35" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pIcon" width="30" height="30" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </button>
-        <button class="neu-btn" onclick="next()"><svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg></button>
+        <button class="neu-btn" onclick="next()"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg></button>
     </div>
 
     <div class="dsp-panel">
@@ -181,22 +165,27 @@
     </div>
 
     <div class="brand-footer">
-        <b style="color:var(--gold); font-size:1.4rem; letter-spacing:1px;">MediaMind</b>
-        <span style="font-size:0.6rem; color:#888; text-transform:uppercase; letter-spacing:1px; font-weight:bold;">POWERED BY INFRAMIND TECHNOLOGIES</span>
+        <b style="color:var(--gold); font-size:1.2rem;">MediaMind</b>
+        <span style="font-size:0.55rem; color:#888; text-transform:uppercase; font-weight:bold;">POWERED BY INFRAMIND</span>
     </div>
 </div>
 
 <script>
     const player = videojs('vjs_engine', { controls: false });
-    const stage = document.getElementById('stage');
-    let playlist = [], cur = 0, aCtx, src, anlyzr, gain, filts = {};
-    const cvs = document.getElementById('visualizer');
-    const ctx = cvs.getContext('2d');
+    const stage = document.getElementById('stage'), sk = document.getElementById('seekbar');
+    const curT = document.getElementById('cur-time'), durT = document.getElementById('dur-time');
+    let playlist = [], cur = 0, aCtx, anlyzr, gain;
+
+    function formatTime(s) {
+        let min = Math.floor(s / 60);
+        let sec = Math.floor(s % 60);
+        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
 
     function initA() {
         if (aCtx) return;
         aCtx = new (window.AudioContext || window.webkitAudioContext)();
-        src = aCtx.createMediaElementSource(document.querySelector('video'));
+        const src = aCtx.createMediaElementSource(document.querySelector('video'));
         anlyzr = aCtx.createAnalyser(); anlyzr.fftSize = 128;
         gain = aCtx.createGain();
         let last = src;
@@ -206,7 +195,6 @@
             s.oninput = (e) => { f.gain.value = e.target.value; };
         });
         last.connect(anlyzr); anlyzr.connect(gain); gain.connect(aCtx.destination);
-        document.getElementById('pre').oninput = (e) => { gain.gain.value = e.target.value; };
         loop();
     }
 
@@ -214,7 +202,9 @@
         requestAnimationFrame(loop);
         const data = new Uint8Array(anlyzr.frequencyBinCount);
         anlyzr.getByteFrequencyData(data);
+        const cvs = document.getElementById('visualizer');
         cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
+        const ctx = cvs.getContext('2d');
         ctx.clearRect(0,0,cvs.width,cvs.height);
         const bw = (cvs.width / data.length) * 2;
         let x = 0;
@@ -243,7 +233,6 @@
         cur = i; const f = playlist[i]; const isV = f.type.startsWith('video/') || f.name.toLowerCase().endsWith('.mkv');
         stage.classList.remove('collapsed');
         document.getElementById('name-display').innerText = f.name;
-        document.getElementById('status-display').innerText = isV ? "Video Theater" : "Graph Active";
         const vEl = document.getElementById('vjs_engine');
         if (isV) vEl.classList.add('video-active'); else vEl.classList.remove('video-active');
         player.src({ type: isV ? 'video/webm' : f.type, src: URL.createObjectURL(f) });
@@ -258,6 +247,19 @@
     function updateI(s) {
         document.getElementById('pIcon').innerHTML = s ? `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>` : `<path d="M8 5v14l11-7z"/>`;
     }
+
+    // SEEKBAR LOGIC
+    player.on('timeupdate', () => {
+        const p = (player.currentTime() / player.duration()) * 100;
+        sk.value = p || 0;
+        curT.innerText = formatTime(player.currentTime());
+        durT.innerText = formatTime(player.duration() || 0);
+    });
+
+    sk.oninput = () => {
+        const time = (sk.value / 100) * player.duration();
+        player.currentTime(time);
+    };
 
     function next() { play((cur + 1) % playlist.length); }
     function prev() { play((cur - 1 + playlist.length) % playlist.length); }
