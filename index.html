@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediaMind v4.8 | 12-Band Cinema Pro</title>
+    <title>MediaMind v5.1 | Pro Theater & 12-Band DSP</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
@@ -19,7 +19,7 @@
             --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        body { background-color: var(--white); font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        body { background-color: var(--white); font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
 
         .master-console {
             width: 98vw; max-width: 1050px; height: auto; max-height: 98vh;
@@ -36,35 +36,34 @@
         .video-js { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 5; opacity: 0; visibility: hidden; }
         .video-active { opacity: 1 !important; visibility: visible !important; }
 
-        /* --- FULLSCREEN & OVERLAY --- */
+        /* --- OVERLAYS --- */
         .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 20; display: flex; flex-direction: column; gap: 4px; }
         .overlay-bottom { display: flex; align-items: center; gap: 15px; }
         .time-display { display: flex; justify-content: space-between; color: white; font-size: 0.7rem; font-family: monospace; flex: 1; }
         
-        .fs-toggle {
-            background: none; border: none; color: var(--gold); cursor: pointer; padding: 5px;
-            display: flex; align-items: center; transition: 0.2s;
-        }
-        .fs-toggle:hover { color: var(--green); transform: scale(1.1); }
-
         #seekbar { -webkit-appearance: none; width: 100%; height: 3px; background: rgba(255,255,255,0.2); outline: none; cursor: pointer; }
         #seekbar::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: var(--gold); border-radius: 50%; }
 
+        .fs-toggle { background: none; border: none; color: var(--gold); cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
+        .fs-toggle:hover { color: var(--green); transform: scale(1.1); }
+
+        /* --- PRESETS --- */
         .preset-bar { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
         .preset-chip { background: #2a2a2a; color: #eee; border: 1px solid #444; padding: 6px 16px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; white-space: nowrap; }
         .preset-chip.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
 
+        /* --- CONTROLS --- */
         .controls-row { display: flex; justify-content: center; gap: 12px; padding: 5px 0; align-items: center; }
         .neu-btn { width: 42px; height: 42px; background: var(--cream-btn); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; box-shadow: 0 8px 15px rgba(0,0,0,0.4); cursor: pointer; }
-        .neu-btn.play-toggle { background: var(--green); width: 50px; height: 50px; }
+        .neu-btn.active { color: var(--green); box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); }
+        .neu-btn.play-toggle { background: var(--green); width: 50px; height: 50px; color: white; }
 
         .vol-container { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; }
         #master-vol { -webkit-appearance: none; width: 70px; height: 3px; background: #444; cursor: pointer; }
+        #master-vol::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: var(--green); border-radius: 50%; }
 
-        /* --- RESTORED 12-BAND DSP PANEL --- */
-        .dsp-panel { 
-            background: #fff; border-radius: 20px; padding: 15px 10px; display: flex; gap: 5px; justify-content: center; overflow-x: auto; box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); 
-        }
+        /* --- 12-BAND DSP --- */
+        .dsp-panel { background: #fff; border-radius: 20px; padding: 15px 10px; display: flex; gap: 5px; justify-content: center; overflow-x: auto; box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); }
         .dsp-panel::-webkit-scrollbar { display: none; }
         .eq-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 62px; }
         .eq-slider { -webkit-appearance: slider-vertical; width: 4px; height: 75px; background: #ddd; cursor: pointer; }
@@ -76,16 +75,17 @@
 </head>
 <body>
 
-<div class="master-console" id="console">
+<div class="master-console">
     <div class="stage-area collapsed" id="stage">
         <canvas id="visualizer"></canvas>
         <video id="vjs_engine" class="video-js" crossorigin="anonymous" playsinline></video>
-        
         <div class="playback-overlay">
             <input type="range" id="seekbar" min="0" max="100" value="0">
             <div class="overlay-bottom">
                 <div class="time-display"><span id="cur-time">0:00</span><span id="dur-time">0:00</span></div>
-                <button class="fs-toggle" onclick="toggleFullscreen()"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
+                <button class="fs-toggle" onclick="toggleFullscreen()" title="Theater Mode">
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                </button>
             </div>
         </div>
     </div>
@@ -101,12 +101,17 @@
 
     <div class="controls-row">
         <button class="neu-btn" onclick="openMedia()"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></button>
-        <button class="neu-btn" onclick="playFromDrive()"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M7.71 3.5L1.15 15l3.43 6l6.55-11.5M9.73 15L6.3 21h12.82l3.43-6M11.59 3.5L15 9.5l6.56 11.5l3.43-6L18.41 3.5"/></svg></button>
+        <button class="neu-btn" onclick="importDriveFolder()" title="Drive Folder ID"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M7.71 3.5L1.15 15l3.43 6l6.55-11.5M9.73 15L6.3 21h12.82l3.43-6M11.59 3.5L15 9.5l6.56 11.5l3.43-6L18.41 3.5"/></svg></button>
         <button class="neu-btn" onclick="prev()"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
         <button class="neu-btn play-toggle" onclick="toggle()"><svg id="pIcon" width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
         <button class="neu-btn" onclick="next()"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg></button>
+        
+        <button id="shuffleBtn" class="neu-btn" onclick="toggleShuffle()" title="Shuffle Mode">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+        </button>
+
         <div class="vol-container"><input type="range" id="master-vol" min="0" max="1" step="0.01" value="0.8"></div>
-        <button class="util-btn" style="background:var(--gold); border:none; padding:6px 12px; border-radius:5px; font-weight:bold; font-size:0.6rem;" onclick="saveCustomPreset()">SAVE AS...</button>
+        <button class="neu-btn" style="background:var(--gold); border-radius:5px; width:auto; padding:0 10px; font-size:0.6rem; font-weight:bold;" onclick="saveCustomPreset()">SAVE</button>
     </div>
 
     <div class="dsp-panel">
@@ -125,7 +130,7 @@
     </div>
 
     <div class="brand-footer">
-        <b style="color:var(--gold); font-size:1rem;">MediaMind v4.8</b>
+        <b style="color:var(--gold); font-size:1rem;">MediaMind v5.1</b>
         <span style="font-size:0.5rem; color:#888; text-transform:uppercase; font-weight:bold;">POWERED BY INFRAMIND</span>
     </div>
 </div>
@@ -134,57 +139,56 @@
     const player = videojs('vjs_engine', { controls: false, preload: 'auto' });
     const stage = document.getElementById('stage'), sk = document.getElementById('seekbar');
     const curT = document.getElementById('cur-time'), durT = document.getElementById('dur-time');
-    let playlist = [], cur = 0, aCtx, anlyzr, masterGain, preAmpNode, filters = {};
+    let playlist = [], cur = 0, isShuffle = false, aCtx, anlyzr, masterGain, preAmpNode, filters = {};
 
     const presets = {
-        'Flat': [0,0,0,0,0,0,0,0,0,0,0],
-        'Bass Boost': [8,7,4,2,0,0,1,2,3,4,4],
-        'Acoustic': [4,3,2,3,4,3,4,5,4,3,3],
-        'Electronic': [6,5,2,1,3,4,2,3,5,7,7],
-        'Clear Vocals': [-3,-2,0,2,4,6,4,2,0,-1,-2],
-        'Loudness': [7,5,1,0,-2,0,2,4,6,8,8]
+        'Flat': [0,0,0,0,0,0,0,0,0,0,0], 'Bass Boost': [8,7,4,2,0,0,1,2,3,4,4],
+        'Acoustic': [4,3,2,3,4,3,4,5,4,3,3], 'Electronic': [6,5,2,1,3,4,2,3,5,7,7],
+        'Clear Vocals': [-3,-2,0,2,4,6,4,2,0,-1,-2], 'Loudness': [7,5,1,0,-2,0,2,4,6,8,8]
     };
 
     function formatTime(s) { let m = Math.floor(s / 60), sc = Math.floor(s % 60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
 
-    function toggleFullscreen() {
-        if (!document.fullscreenElement) { stage.requestFullscreen().catch(e => alert(e.message)); }
-        else { document.exitFullscreen(); }
-    }
+    function toggleFullscreen() { if (!document.fullscreenElement) stage.requestFullscreen(); else document.exitFullscreen(); }
+
+    function toggleShuffle() { isShuffle = !isShuffle; document.getElementById('shuffleBtn').classList.toggle('active', isShuffle); }
 
     function applyPreset(name) {
         const values = presets[name];
         document.querySelectorAll('.band').forEach((s, i) => {
-            s.value = values[i] || 0;
-            if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i] || 0;
+            s.value = values[i] || 0; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i] || 0;
         });
         document.querySelectorAll('.preset-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
     }
 
-    function saveCustomPreset() {
-        const name = prompt("Name your preset:"); if (!name) return;
-        const bands = Array.from(document.querySelectorAll('.band')).map(s => s.value);
-        let custom = JSON.parse(localStorage.getItem('mediamind_custom') || '{}');
-        custom[name] = bands; localStorage.setItem('mediamind_custom', JSON.stringify(custom));
-        addCustomChip(name, bands);
+    async function openMedia() {
+        try {
+            const h = await window.showDirectoryPicker(); playlist = [];
+            for await (const e of h.values()) if (e.kind === 'file') {
+                const f = await e.getFile(); playlist.push({ name: f.name, type: f.type, src: URL.createObjectURL(f) });
+            }
+            if(playlist.length > 0) play(0);
+        } catch (e) {}
     }
 
-    function addCustomChip(name, values) {
-        if(document.getElementById(`chip-${name}`)) return;
-        const chip = document.createElement('div');
-        chip.id = `chip-${name}`; chip.className = 'preset-chip'; chip.innerText = name;
-        chip.onclick = () => {
-            document.querySelectorAll('.band').forEach((s, i) => {
-                s.value = values[i]; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i];
-            });
-            document.querySelectorAll('.preset-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
-        };
-        document.getElementById('preset-list').appendChild(chip);
+    function importDriveFolder() {
+        const input = prompt("Paste Google Drive IDs (separated by commas):");
+        if (!input) return;
+        playlist = input.split(',').map(id => ({ name: "Cloud File", type: "video/mp4", src: `https://docs.google.com/uc?export=download&id=${id.trim()}` }));
+        if(playlist.length > 0) play(0);
+    }
+
+    function play(i) {
+        cur = i; const item = playlist[i]; stage.classList.remove('collapsed');
+        const vjsEl = document.querySelector('.video-js');
+        vjsEl.classList.toggle('video-active', item.type.includes('video') || item.src.includes('uc?'));
+        player.src({ type: item.type, src: item.src });
+        player.load(); player.play().then(() => { if(!aCtx) initDSP(); });
     }
 
     function initDSP() {
         if (aCtx) return;
-        aCtx = new (window.AudioContext || window.webkitAudioContext)();
+        aCtx = new (AudioContext || webkitAudioContext)();
         const src = aCtx.createMediaElementSource(document.querySelector('video'));
         anlyzr = aCtx.createAnalyser(); anlyzr.fftSize = 256;
         preAmpNode = aCtx.createGain(); masterGain = aCtx.createGain();
@@ -192,71 +196,34 @@
         document.querySelectorAll('.band').forEach(slider => {
             const f = aCtx.createBiquadFilter(); f.type = "peaking"; f.frequency.value = slider.dataset.f;
             f.gain.value = slider.value; lastNode.connect(f); lastNode = f;
-            filters[slider.dataset.f] = f;
-            slider.oninput = (e) => { f.gain.value = e.target.value; };
+            filters[slider.dataset.f] = f; slider.oninput = (e) => { f.gain.value = e.target.value; };
         });
         lastNode.connect(preAmpNode); preAmpNode.connect(anlyzr); anlyzr.connect(masterGain);
         masterGain.connect(aCtx.destination);
+        document.getElementById('pre-amp').oninput = (e) => { preAmpNode.gain.value = e.target.value; };
+        document.getElementById('master-vol').oninput = (e) => { masterGain.gain.value = e.target.value; };
         loop();
     }
 
     function loop() {
         requestAnimationFrame(loop); if(!anlyzr) return;
-        const data = new Uint8Array(anlyzr.frequencyBinCount); anlyzr.getByteFrequencyData(data);
-        const cvs = document.getElementById('visualizer');
-        cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
+        const d = new Uint8Array(anlyzr.frequencyBinCount); anlyzr.getByteFrequencyData(d);
+        const cvs = document.getElementById('visualizer'); cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
         const ctx = cvs.getContext('2d'); ctx.clearRect(0,0,cvs.width,cvs.height);
-        const bw = (cvs.width / data.length) * 2; let x = 0;
-        for(let i=0; i<data.length; i++) {
-            let bh = data[i] / 2; ctx.fillStyle = '#2ecc71';
-            ctx.fillRect(x, cvs.height - bh, bw, bh); x += bw + 2;
+        let x = 0; const bw = (cvs.width / d.length) * 2;
+        for(let i=0; i<d.length; i++) {
+            ctx.fillStyle = '#2ecc71'; ctx.fillRect(x, cvs.height - (d[i]/2), bw, d[i]/2); x += bw + 2;
         }
     }
 
-    async function openMedia() {
-        try {
-            const h = await window.showDirectoryPicker(); playlist = [];
-            for await (const e of h.values()) {
-                if (e.kind === 'file') {
-                    const f = await e.getFile();
-                    if (f.type.startsWith('video/') || f.type.startsWith('audio/') || f.name.toLowerCase().endsWith('.mkv')) playlist.push(f);
-                }
-            }
-            if(playlist.length > 0) play(0);
-        } catch (e) {}
-    }
+    function next() { let idx = isShuffle ? Math.floor(Math.random() * playlist.length) : (cur + 1) % playlist.length; play(idx); }
+    function prev() { play((cur - 1 + playlist.length) % playlist.length); }
+    function toggle() { if (player.paused()) { player.play(); stage.classList.remove('collapsed'); } else player.pause(); }
 
-    function play(i) {
-        cur = i; const f = playlist[i];
-        const isVideo = f.type.startsWith('video/') || f.name.toLowerCase().endsWith('.mkv');
-        stage.classList.remove('collapsed');
-        const vjsEl = document.querySelector('.video-js');
-        if (isVideo) vjsEl.classList.add('video-active'); else vjsEl.classList.remove('video-active');
-        player.src({ type: isVideo && f.name.toLowerCase().endsWith('.mkv') ? 'video/webm' : f.type, src: URL.createObjectURL(f) });
-        player.load(); player.play().then(() => { if(!aCtx) initDSP(); });
-        updateI(true);
-    }
-
-    function playFromDrive() {
-        const id = prompt("Enter Drive Link or ID:"); if (!id) return;
-        const match = id.match(/[-\w]{25,}/);
-        const streamUrl = `https://docs.google.com/uc?export=download&id=${match ? match[0] : id}`;
-        stage.classList.remove('collapsed'); document.querySelector('.video-js').classList.add('video-active');
-        player.src({ type: 'video/mp4', src: streamUrl });
-        player.play(); updateI(true); if(!aCtx) initDSP();
-    }
-
-    function toggle() { if (player.paused()) { player.play(); updateI(true); stage.classList.remove('collapsed'); } else { player.pause(); updateI(false); } }
-    function updateI(s) { document.getElementById('pIcon').innerHTML = s ? `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>` : `<path d="M8 5v14l11-7z"/>`; }
     player.on('timeupdate', () => { sk.value = (player.currentTime() / player.duration()) * 100 || 0; curT.innerText = formatTime(player.currentTime()); durT.innerText = formatTime(player.duration() || 0); });
-    sk.oninput = () => { player.currentTime((sk.value / 100) * player.duration()); };
-    function next() { if(playlist.length) play((cur + 1) % playlist.length); }
-    function prev() { if(playlist.length) play((cur - 1 + playlist.length) % playlist.length); }
-    document.addEventListener('mousedown', () => { if(aCtx && aCtx.state === 'suspended') aCtx.resume(); });
-    
-    const custom = JSON.parse(localStorage.getItem('mediamind_custom') || '{}');
-    Object.keys(custom).forEach(k => addCustomChip(k, custom[k]));
+    sk.oninput = () => player.currentTime((sk.value / 100) * player.duration());
+    player.on('ended', next);
+    document.addEventListener('mousedown', () => { if(aCtx) aCtx.resume(); });
 </script>
-
 </body>
 </html>
