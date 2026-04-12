@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediaMind v4.3 | Pro Preset Manager</title>
+    <title>MediaMind v4.6 | Centered Pro DSP</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
@@ -25,25 +25,24 @@
             width: 98vw; max-width: 1050px; height: auto; max-height: 98vh;
             background: var(--dark-console); border-radius: 35px; padding: 18px;
             border: 5px solid var(--green); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; gap: 10px; transition: var(--transition);
+            display: flex; flex-direction: column; gap: 10px;
         }
 
         .stage-area { width: 100%; aspect-ratio: 21 / 9; background: #000; border-radius: 20px; position: relative; overflow: hidden; border: 2px solid #333; transition: var(--transition); }
         .stage-area.collapsed { height: 0; opacity: 0; margin: 0; border-width: 0; transform: scaleY(0); }
 
-        #visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .video-js { position: absolute !important; top: 0; left: 0; z-index: 2; opacity: 0; width: 100% !important; height: 100% !important;}
-        .video-active { opacity: 1 !important; }
+        #visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .video-js { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 5; opacity: 0; visibility: hidden; }
+        .video-active { opacity: 1 !important; visibility: visible !important; }
 
-        .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 15; display: flex; flex-direction: column; gap: 4px; }
+        .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 20; display: flex; flex-direction: column; gap: 4px; }
         .time-display { display: flex; justify-content: space-between; color: white; font-size: 0.7rem; font-family: monospace; }
         #seekbar { -webkit-appearance: none; width: 100%; height: 3px; background: rgba(255,255,255,0.2); outline: none; cursor: pointer; }
         #seekbar::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: var(--gold); border-radius: 50%; }
 
-        /* --- PRESET SELECTOR BAR --- */
         .preset-bar { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
-        .preset-chip { background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid #444; padding: 4px 12px; border-radius: 15px; font-size: 0.65rem; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-        .preset-chip:hover, .preset-chip.active { background: var(--gold); color: #000; border-color: var(--gold); }
+        .preset-chip { background: #2a2a2a; color: #eee; border: 1px solid #444; padding: 6px 16px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; white-space: nowrap; }
+        .preset-chip.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
 
         .controls-row { display: flex; justify-content: center; gap: 12px; padding: 5px 0; align-items: center; flex-wrap: wrap; }
         .neu-btn { width: 42px; height: 42px; background: var(--cream-btn); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; box-shadow: 0 8px 15px rgba(0,0,0,0.4); cursor: pointer; }
@@ -53,20 +52,32 @@
         #master-vol { -webkit-appearance: none; width: 70px; height: 3px; background: #444; }
         #master-vol::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: var(--green); border-radius: 50%; }
 
-        .action-btn { background: var(--gold); color: #000; border: none; padding: 6px 12px; border-radius: 5px; font-size: 0.6rem; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+        .util-btn { background: var(--gold); color: #000; border: none; padding: 6px 12px; border-radius: 5px; font-size: 0.6rem; font-weight: 900; cursor: pointer; text-transform: uppercase; }
 
-        .dsp-panel { background: #fff; border-radius: 20px; padding: 15px; display: flex; gap: 12px; overflow-x: auto; box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); }
-        .eq-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 50px; }
-        .eq-slider { -webkit-appearance: slider-vertical; width: 4px; height: 70px; background: #ddd; }
+        /* --- THE FIXED CENTERED DSP PANEL --- */
+        .dsp-panel { 
+            background: #fff; 
+            border-radius: 20px; 
+            padding: 15px 10px; 
+            display: flex; 
+            gap: 5px;
+            justify-content: center; /* CENTERED CONTENT */
+            overflow-x: auto;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); 
+        }
+        .dsp-panel::-webkit-scrollbar { display: none; }
+
+        .eq-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 62px; /* Adjusted width for centering */ }
+        .eq-slider { -webkit-appearance: slider-vertical; width: 4px; height: 75px; background: #ddd; cursor: pointer; }
         .eq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--blue-slider); border-radius: 50%; border: 2px solid white; }
-        .eq-label { font-size: 0.55rem; color: #444; font-weight: 800; text-align: center; }
+        .eq-label { font-size: 0.55rem; color: #444; font-weight: 800; margin-top: 2px; }
 
         .brand-footer { background: var(--cream-btn); border-radius: 15px; padding: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; height: 38px;}
     </style>
 </head>
 <body>
 
-<div class="master-console">
+<div class="master-console" id="console">
     <div class="stage-area collapsed" id="stage">
         <canvas id="visualizer"></canvas>
         <video id="vjs_engine" class="video-js" crossorigin="anonymous" playsinline></video>
@@ -77,12 +88,12 @@
     </div>
 
     <div class="preset-bar" id="preset-list">
-        <div class="preset-chip active" onclick="applyPredefined('Flat')">Flat</div>
-        <div class="preset-chip" onclick="applyPredefined('Bass Boost')">Bass Boost</div>
-        <div class="preset-chip" onclick="applyPredefined('Acoustic')">Acoustic</div>
-        <div class="preset-chip" onclick="applyPredefined('Electronic')">Electronic</div>
-        <div class="preset-chip" onclick="applyPredefined('Clear Vocals')">Clear Vocals</div>
-        <div class="preset-chip" onclick="applyPredefined('Loudness')">Loudness</div>
+        <div class="preset-chip active" onclick="applyPreset('Flat')">Flat</div>
+        <div class="preset-chip" onclick="applyPreset('Bass Boost')">Bass Boost</div>
+        <div class="preset-chip" onclick="applyPreset('Acoustic')">Acoustic</div>
+        <div class="preset-chip" onclick="applyPreset('Electronic')">Electronic</div>
+        <div class="preset-chip" onclick="applyPreset('Clear Vocals')">Clear Vocals</div>
+        <div class="preset-chip" onclick="applyPreset('Loudness')">Loudness</div>
     </div>
 
     <div class="controls-row">
@@ -92,7 +103,7 @@
         <button class="neu-btn play-toggle" onclick="toggle()"><svg id="pIcon" width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
         <button class="neu-btn" onclick="next()"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg></button>
         <div class="vol-container"><input type="range" id="master-vol" min="0" max="1" step="0.01" value="0.8"></div>
-        <button class="action-btn" onclick="saveCustomPreset()">Save As...</button>
+        <button class="util-btn" onclick="saveCustomPreset()">Save As...</button>
     </div>
 
     <div class="dsp-panel">
@@ -111,74 +122,56 @@
     </div>
 
     <div class="brand-footer">
-        <b style="color:var(--gold); font-size:1rem;">MediaMind v4.3</b>
+        <b style="color:var(--gold); font-size:1rem;">MediaMind v4.6</b>
         <span style="font-size:0.5rem; color:#888; text-transform:uppercase; font-weight:bold;">POWERED BY INFRAMIND</span>
     </div>
 </div>
 
 <script>
-    const player = videojs('vjs_engine', { controls: false });
+    const player = videojs('vjs_engine', { controls: false, preload: 'auto' });
     const stage = document.getElementById('stage'), sk = document.getElementById('seekbar');
     const curT = document.getElementById('cur-time'), durT = document.getElementById('dur-time');
     let playlist = [], cur = 0, aCtx, anlyzr, masterGain, preAmpNode, filters = {};
 
-    const predefined = {
+    const presets = {
         'Flat': [0,0,0,0,0,0,0,0,0,0,0],
-        'Bass Boost': [8,7,5,2,0,0,0,0,1,2,3],
-        'Acoustic': [4,3,1,2,3,2,4,5,4,3,2],
-        'Electronic': [6,5,1,0,2,4,1,2,5,6,7],
-        'Clear Vocals': [-2,-3,-1,0,2,5,6,4,2,0,-1],
-        'Loudness': [7,5,0,0,-2,0,0,2,5,6,8]
+        'Bass Boost': [8,7,4,2,0,0,1,2,3,4,4],
+        'Acoustic': [4,3,2,3,4,3,4,5,4,3,3],
+        'Electronic': [6,5,2,1,3,4,2,3,5,7,7],
+        'Clear Vocals': [-3,-2,0,2,4,6,4,2,0,-1,-2],
+        'Loudness': [7,5,1,0,-2,0,2,4,6,8,8]
     };
 
     function formatTime(s) { let m = Math.floor(s / 60), sc = Math.floor(s % 60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
 
-    // --- PRESET SYSTEM ---
-    function applyPredefined(name) {
-        const values = predefined[name];
+    function applyPreset(name) {
+        const values = presets[name];
         document.querySelectorAll('.band').forEach((s, i) => {
-            s.value = values[i];
-            if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i];
+            s.value = values[i] || 0;
+            if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i] || 0;
         });
-        updateChips(name);
+        document.querySelectorAll('.preset-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
     }
 
     function saveCustomPreset() {
-        const name = prompt("Enter Preset Name:");
-        if (!name) return;
+        const name = prompt("Name your preset:"); if (!name) return;
         const bands = Array.from(document.querySelectorAll('.band')).map(s => s.value);
         let custom = JSON.parse(localStorage.getItem('mediamind_custom') || '{}');
-        custom[name] = bands;
-        localStorage.setItem('mediamind_custom', JSON.stringify(custom));
-        renderCustomChips();
+        custom[name] = bands; localStorage.setItem('mediamind_custom', JSON.stringify(custom));
+        addCustomChip(name, bands);
     }
 
-    function renderCustomChips() {
-        const container = document.getElementById('preset-list');
-        let custom = JSON.parse(localStorage.getItem('mediamind_custom') || '{}');
-        Object.keys(custom).forEach(name => {
-            if(!document.getElementById(`chip-${name}`)) {
-                const chip = document.createElement('div');
-                chip.id = `chip-${name}`;
-                chip.className = 'preset-chip';
-                chip.innerText = name;
-                chip.onclick = () => {
-                    const values = custom[name];
-                    document.querySelectorAll('.band').forEach((s, i) => {
-                        s.value = values[i];
-                        if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i];
-                    });
-                    updateChips(name);
-                };
-                container.appendChild(chip);
-            }
-        });
-    }
-
-    function updateChips(activeName) {
-        document.querySelectorAll('.preset-chip').forEach(c => {
-            c.classList.toggle('active', c.innerText === activeName);
-        });
+    function addCustomChip(name, values) {
+        if(document.getElementById(`chip-${name}`)) return;
+        const chip = document.createElement('div');
+        chip.id = `chip-${name}`; chip.className = 'preset-chip'; chip.innerText = name;
+        chip.onclick = () => {
+            document.querySelectorAll('.band').forEach((s, i) => {
+                s.value = values[i]; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i];
+            });
+            document.querySelectorAll('.preset-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
+        };
+        document.getElementById('preset-list').appendChild(chip);
     }
 
     function initDSP() {
@@ -196,14 +189,11 @@
         });
         lastNode.connect(preAmpNode); preAmpNode.connect(anlyzr); anlyzr.connect(masterGain);
         masterGain.connect(aCtx.destination);
-        document.getElementById('pre-amp').oninput = (e) => { preAmpNode.gain.value = e.target.value; };
-        document.getElementById('master-vol').oninput = (e) => { masterGain.gain.value = e.target.value; };
         loop();
     }
 
-    // --- UTILITIES & PLAYER ---
     function loop() {
-        requestAnimationFrame(loop);
+        requestAnimationFrame(loop); if(!anlyzr) return;
         const data = new Uint8Array(anlyzr.frequencyBinCount); anlyzr.getByteFrequencyData(data);
         const cvs = document.getElementById('visualizer');
         cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
@@ -229,24 +219,35 @@
     }
 
     function play(i) {
-        cur = i; const f = playlist[i]; const isV = f.type.startsWith('video/') || f.name.toLowerCase().endsWith('.mkv');
+        cur = i; const f = playlist[i];
+        const isVideo = f.type.startsWith('video/') || f.name.toLowerCase().endsWith('.mkv');
         stage.classList.remove('collapsed');
-        player.src({ type: isV ? 'video/webm' : f.type, src: URL.createObjectURL(f) });
+        const vjsEl = document.querySelector('.video-js');
+        if (isVideo) vjsEl.classList.add('video-active'); else vjsEl.classList.remove('video-active');
+        player.src({ type: isVideo && f.name.toLowerCase().endsWith('.mkv') ? 'video/webm' : f.type, src: URL.createObjectURL(f) });
+        player.play().then(() => { if(!aCtx) initDSP(); });
+        updateI(true);
+    }
+
+    function playFromDrive() {
+        const id = prompt("Enter Drive Link or ID:"); if (!id) return;
+        const match = id.match(/[-\w]{25,}/);
+        const streamUrl = `https://docs.google.com/uc?export=download&id=${match ? match[0] : id}`;
+        stage.classList.remove('collapsed'); document.querySelector('.video-js').classList.add('video-active');
+        player.src({ type: 'video/mp4', src: streamUrl });
         player.play(); updateI(true); if(!aCtx) initDSP();
     }
 
-    function toggle() {
-        if (player.paused()) { player.play(); updateI(true); if(playlist.length > 0 || player.src()) stage.classList.remove('collapsed'); } 
-        else { player.pause(); updateI(false); }
-    }
-
+    function toggle() { if (player.paused()) { player.play(); updateI(true); stage.classList.remove('collapsed'); } else { player.pause(); updateI(false); } }
     function updateI(s) { document.getElementById('pIcon').innerHTML = s ? `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>` : `<path d="M8 5v14l11-7z"/>`; }
     player.on('timeupdate', () => { sk.value = (player.currentTime() / player.duration()) * 100 || 0; curT.innerText = formatTime(player.currentTime()); durT.innerText = formatTime(player.duration() || 0); });
     sk.oninput = () => { player.currentTime((sk.value / 100) * player.duration()); };
     function next() { if(playlist.length) play((cur + 1) % playlist.length); }
     function prev() { if(playlist.length) play((cur - 1 + playlist.length) % playlist.length); }
-    document.addEventListener('mousedown', () => { if(aCtx) aCtx.resume(); });
-    renderCustomChips();
+    document.addEventListener('mousedown', () => { if(aCtx && aCtx.state === 'suspended') aCtx.resume(); });
+    
+    const custom = JSON.parse(localStorage.getItem('mediamind_custom') || '{}');
+    Object.keys(custom).forEach(k => addCustomChip(k, custom[k]));
 </script>
 
 </body>
