@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MediaMind v2.0 | Powered by InfraMind</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
+    
+    <style>
+        :root {
+            --green: #2ecc71;
+            --dark-gray: #333333;
+            --white: #FFFFFF;
+            --cream: #f4f1e9;
+            --bg-page: #e0e0e0;
+            --gold: #D4AF37;
+            --transition: all 0.2s ease;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            perspective: 1000px;
+        }
+
+        /* --- NEUMORPHIC CONSOLE --- */
+        .player-console {
+            width: 95%;
+            max-width: 1000px;
+            background: var(--dark-gray);
+            border-radius: 40px;
+            padding: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            border: 8px solid var(--green);
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.4), inset 2px 2px 5px rgba(255,255,255,0.1);
+            position: relative;
+            transform: rotateX(2deg);
+        }
+
+        /* --- LEFT NAVIGATION --- */
+        .sys-side {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0 15px;
+        }
+
+        .icon-btn {
+            color: #666;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .icon-btn:hover, .icon-btn.active { color: var(--green); }
+
+        /* --- CENTER CORE --- */
+        .player-core {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 0 10px;
+        }
+
+        .display-panel {
+            background: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: inset 6px 6px 12px rgba(0,0,0,0.2), inset -4px -4px 10px rgba(255,255,255,0.8);
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .song-title { color: #222; font-weight: 800; font-size: 1.2rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-meta { color: var(--green); font-size: 0.75rem; margin: 5px 0 0 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;}
+
+        /* --- NEUMORPHIC BUTTONS --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .neu-btn {
+            width: 55px; height: 55px;
+            background: var(--cream);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            border: none;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.2), -2px -2px 8px rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .neu-btn:active {
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.2);
+            transform: scale(0.95);
+        }
+
+        .neu-btn.play-toggle { background: var(--green); color: white; width: 65px; height: 65px; }
+
+        /* --- DSP EQUALIZER PANEL --- */
+        .dsp-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 120px;
+            box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5);
+            margin-top: 10px;
+        }
+
+        .eq-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+        .eq-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 4px;
+            height: 70px;
+            background: #222;
+            outline: none;
+            writing-mode: bt-lr; /* Vertical orientation */
+            -webkit-appearance: slider-vertical;
+        }
+
+        .eq-label { font-size: 0.6rem; color: var(--gold); font-weight: bold; }
+
+        /* --- RIGHT LOGO/ART --- */
+        .brand-side {
+            width: 200px;
+            height: 200px;
+            background: var(--cream);
+            border-radius: 30px;
+            margin-left: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 8px 8px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .brand-text { color: var(--dark-gray); text-align: center; }
+        .brand-text b { color: var(--gold); font-size: 1.4rem; letter-spacing: 1px; display: block; }
+
+        /* --- MOBILE ADAPTATION --- */
+        @media (max-width: 768px) {
+            .player-console { flex-direction: column; padding: 20px; transform: none; width: 90%; }
+            .sys-side { flex-direction: row; margin-bottom: 15px; }
+            .brand-side { width: 100%; height: 80px; margin: 15px 0 0 0; }
+            .dsp-panel { height: 100px; }
+        }
+
+        .vjs-hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<svg style="display: none;">
+    <symbol id="icon-folder" viewBox="0 0 24 24"><path fill="currentColor" d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></symbol>
+    <symbol id="icon-prev" viewBox="0 0 24 24"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></symbol>
+    <symbol id="icon-pause" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></symbol>
+    <symbol id="icon-next" viewBox="0 0 24 24"><path fill="currentColor" d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></symbol>
+</svg>
+
+<div class="player-console">
+    <div class="sys-side">
+        <div class="icon-btn active" onclick="loadFolder()"><svg width="32" height="32"><use href="#icon-folder"></use></svg></div>
+    </div>
+
+    <div class="player-core">
+        <div class="display-panel" onclick="loadFolder()">
+            <h2 class="song-title" id="track-name">MediaMind v2.0</h2>
+            <p class="song-meta" id="track-status">Offline | Tap to Browse</p>
+        </div>
+
+        <div class="controls">
+            <button class="neu-btn" onclick="prevTrack()"><svg width="24" height="24"><use href="#icon-prev"></use></svg></button>
+            <button class="neu-btn play-toggle" id="masterPlay" onclick="togglePlayback()">
+                <svg id="playIcon" width="30" height="30"><use href="#icon-play"></use></svg>
+            </button>
+            <button class="neu-btn" onclick="nextTrack()"><svg width="24" height="24"><use href="#icon-next"></use></svg></button>
+        </div>
+
+        <div class="dsp-panel">
+            <div class="eq-col"><input type="range" class="eq-slider" id="gain-pre" min="0" max="2" step="0.1" value="1"><span class="eq-label">PRE</span></div>
+            <div class="eq-col"><input type="range" class="eq-slider eq-band" data-freq="60" min="-12" max="12" value="0"><span class="eq-label">60</span></div>
+            <div class="eq-col"><input type="range" class="eq-slider eq-band" data-freq="400" min="-12" max="12" value="0"><span class="eq-label">400</span></div>
+            <div class="eq-col"><input type="range" class="eq-slider eq-band" data-freq="1000" min="-12" max="12" value="0"><span class="eq-label">1K</span></div>
+            <div class="eq-col"><input type="range" class="eq-slider eq-band" data-freq="3500" min="-12" max="12" value="0"><span class="eq-label">3K</span></div>
+            <div class="eq-col"><input type="range" class="eq-slider eq-band" data-freq="12000" min="-12" max="12" value="0"><span class="eq-label">12K</span></div>
+        </div>
+    </div>
+
+    <div class="brand-side">
+        <div class="brand-text">
+            <b>MediaMind</b>
+            <small>Powered by<br>InfraMind Technologies</small>
+        </div>
+    </div>
+</div>
+
+<video id="audio_engine" class="video-js vjs-hidden" preload="auto"></video>
+
+<script>
+    const player = videojs('audio_engine');
+    let playlist = [];
+    let currentIndex = 0;
+    let audioCtx, source, preAmp;
+    let filters = {};
+
+    // 1. DSP Initialization
+    function initDSP() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const el = document.getElementById('audio_engine_html5_api');
+        source = audioCtx.createMediaElementSource(el);
+        
+        preAmp = audioCtx.createGain();
+        let lastNode = source;
+
+        // Create EQ Bands
+        document.querySelectorAll('.eq-band').forEach(slider => {
+            const freq = slider.dataset.freq;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = "peaking";
+            filter.frequency.value = freq;
+            filter.gain.value = 0;
+            
+            lastNode.connect(filter);
+            lastNode = filter;
+            filters[freq] = filter;
+
+            slider.oninput = (e) => { filter.gain.value = e.target.value; };
+        });
+
+        lastNode.connect(preAmp);
+        preAmp.connect(audioCtx.destination);
+
+        document.getElementById('gain-pre').oninput = (e) => { preAmp.gain.value = e.target.value; };
+    }
+
+    // 2. Local File Handling
+    async function loadFolder() {
+        try {
+            const dirHandle = await window.showDirectoryPicker();
+            playlist = [];
+            for await (const entry of dirHandle.values()) {
+                if (entry.kind === 'file') {
+                    const file = await entry.getFile();
+                    if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+                        playlist.push(file);
+                    }
+                }
+            }
+            if(playlist.length > 0) playTrack(0);
+        } catch (e) { console.log("Picker cancelled"); }
+    }
+
+    function playTrack(index) {
+        if (index < 0 || index >= playlist.length) return;
+        currentIndex = index;
+        const file = playlist[index];
+        const url = URL.createObjectURL(file);
+
+        document.getElementById('track-name').innerText = file.name;
+        document.getElementById('track-status').innerText = `Track ${index + 1} of ${playlist.length}`;
+        
+        player.src({ type: file.type, src: url });
+        player.play();
+        updatePlayIcon(true);
+        if(!audioCtx) initDSP();
+    }
+
+    // 3. Playback Controls
+    function togglePlayback() {
+        if (player.paused()) {
+            player.play();
+            updatePlayIcon(true);
+        } else {
+            player.pause();
+            updatePlayIcon(false);
+        }
+    }
+
+    function updatePlayIcon(isPlaying) {
+        const icon = document.getElementById('playIcon');
+        icon.innerHTML = isPlaying ? `<use href="#icon-pause"></use>` : `<use href="#icon-play"></use>`;
+    }
+
+    function nextTrack() { playTrack((currentIndex + 1) % playlist.length); }
+    function prevTrack() { playTrack((currentIndex - 1 + playlist.length) % playlist.length); }
+
+    // Auto-next
+    player.on('ended', nextTrack);
+
+    // Browser Resume Context
+    document.body.addEventListener('click', () => {
+        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }, {once: true});
+</script>
+
+</body>
+</html>
