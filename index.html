@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediaMind v4.7 | Cinema Edition</title>
+    <title>MediaMind v4.8 | 12-Band Cinema Pro</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
@@ -36,9 +36,8 @@
         .video-js { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 5; opacity: 0; visibility: hidden; }
         .video-active { opacity: 1 !important; visibility: visible !important; }
 
-        /* --- THEATER/FULLSCREEN CONTROLS --- */
+        /* --- FULLSCREEN & OVERLAY --- */
         .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 20; display: flex; flex-direction: column; gap: 4px; }
-        
         .overlay-bottom { display: flex; align-items: center; gap: 15px; }
         .time-display { display: flex; justify-content: space-between; color: white; font-size: 0.7rem; font-family: monospace; flex: 1; }
         
@@ -55,14 +54,18 @@
         .preset-chip { background: #2a2a2a; color: #eee; border: 1px solid #444; padding: 6px 16px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; white-space: nowrap; }
         .preset-chip.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
 
-        .controls-row { display: flex; justify-content: center; gap: 12px; padding: 5px 0; align-items: center; flex-wrap: wrap; }
+        .controls-row { display: flex; justify-content: center; gap: 12px; padding: 5px 0; align-items: center; }
         .neu-btn { width: 42px; height: 42px; background: var(--cream-btn); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; box-shadow: 0 8px 15px rgba(0,0,0,0.4); cursor: pointer; }
         .neu-btn.play-toggle { background: var(--green); width: 50px; height: 50px; }
 
         .vol-container { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; }
-        #master-vol { -webkit-appearance: none; width: 70px; height: 3px; background: #444; }
+        #master-vol { -webkit-appearance: none; width: 70px; height: 3px; background: #444; cursor: pointer; }
 
-        .dsp-panel { background: #fff; border-radius: 20px; padding: 15px 10px; display: flex; gap: 5px; justify-content: center; overflow-x: auto; box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); }
+        /* --- RESTORED 12-BAND DSP PANEL --- */
+        .dsp-panel { 
+            background: #fff; border-radius: 20px; padding: 15px 10px; display: flex; gap: 5px; justify-content: center; overflow-x: auto; box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); 
+        }
+        .dsp-panel::-webkit-scrollbar { display: none; }
         .eq-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 62px; }
         .eq-slider { -webkit-appearance: slider-vertical; width: 4px; height: 75px; background: #ddd; cursor: pointer; }
         .eq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--blue-slider); border-radius: 50%; border: 2px solid white; }
@@ -82,9 +85,7 @@
             <input type="range" id="seekbar" min="0" max="100" value="0">
             <div class="overlay-bottom">
                 <div class="time-display"><span id="cur-time">0:00</span><span id="dur-time">0:00</span></div>
-                <button class="fs-toggle" onclick="toggleFullscreen()" title="Theater Mode">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-                </button>
+                <button class="fs-toggle" onclick="toggleFullscreen()"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
             </div>
         </div>
     </div>
@@ -112,14 +113,19 @@
         <div class="eq-col"><input type="range" class="eq-slider" id="pre-amp" min="0" max="2" step="0.1" value="1"><span class="eq-label">PRE-AMP</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="32" min="-12" max="12" value="0"><span class="eq-label">32Hz</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="64" min="-12" max="12" value="0"><span class="eq-label">64Hz</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="125" min="-12" max="12" value="0"><span class="eq-label">125Hz</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="250" min="-12" max="12" value="0"><span class="eq-label">250Hz</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="500" min="-12" max="12" value="0"><span class="eq-label">500Hz</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="1000" min="-12" max="12" value="0"><span class="eq-label">1kHz</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="2000" min="-12" max="12" value="0"><span class="eq-label">2kHz</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="4000" min="-12" max="12" value="0"><span class="eq-label">4kHz</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="8000" min="-12" max="12" value="0"><span class="eq-label">8kHz</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="12000" min="-12" max="12" value="0"><span class="eq-label">12kHz</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="16000" min="-12" max="12" value="0"><span class="eq-label">16kHz</span></div>
     </div>
 
     <div class="brand-footer">
-        <b style="color:var(--gold); font-size:1rem;">MediaMind v4.7</b>
+        <b style="color:var(--gold); font-size:1rem;">MediaMind v4.8</b>
         <span style="font-size:0.5rem; color:#888; text-transform:uppercase; font-weight:bold;">POWERED BY INFRAMIND</span>
     </div>
 </div>
@@ -131,21 +137,19 @@
     let playlist = [], cur = 0, aCtx, anlyzr, masterGain, preAmpNode, filters = {};
 
     const presets = {
-        'Flat': [0,0,0,0,0,0], 'Bass Boost': [8,7,2,0,2,4], 'Acoustic': [4,2,3,4,4,2],
-        'Electronic': [6,4,1,3,5,7], 'Clear Vocals': [-3,0,4,4,0,-2], 'Loudness': [7,3,-2,2,6,8]
+        'Flat': [0,0,0,0,0,0,0,0,0,0,0],
+        'Bass Boost': [8,7,4,2,0,0,1,2,3,4,4],
+        'Acoustic': [4,3,2,3,4,3,4,5,4,3,3],
+        'Electronic': [6,5,2,1,3,4,2,3,5,7,7],
+        'Clear Vocals': [-3,-2,0,2,4,6,4,2,0,-1,-2],
+        'Loudness': [7,5,1,0,-2,0,2,4,6,8,8]
     };
 
     function formatTime(s) { let m = Math.floor(s / 60), sc = Math.floor(s % 60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
 
-    // --- FULLSCREEN LOGIC ---
     function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            stage.requestFullscreen().catch(err => {
-                alert(`Error attempting to enable theater mode: ${err.message}`);
-            });
-        } else {
-            document.exitFullscreen();
-        }
+        if (!document.fullscreenElement) { stage.requestFullscreen().catch(e => alert(e.message)); }
+        else { document.exitFullscreen(); }
     }
 
     function applyPreset(name) {
@@ -155,6 +159,27 @@
             if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i] || 0;
         });
         document.querySelectorAll('.preset-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
+    }
+
+    function saveCustomPreset() {
+        const name = prompt("Name your preset:"); if (!name) return;
+        const bands = Array.from(document.querySelectorAll('.band')).map(s => s.value);
+        let custom = JSON.parse(localStorage.getItem('mediamind_custom') || '{}');
+        custom[name] = bands; localStorage.setItem('mediamind_custom', JSON.stringify(custom));
+        addCustomChip(name, bands);
+    }
+
+    function addCustomChip(name, values) {
+        if(document.getElementById(`chip-${name}`)) return;
+        const chip = document.createElement('div');
+        chip.id = `chip-${name}`; chip.className = 'preset-chip'; chip.innerText = name;
+        chip.onclick = () => {
+            document.querySelectorAll('.band').forEach((s, i) => {
+                s.value = values[i]; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i];
+            });
+            document.querySelectorAll('.preset-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
+        };
+        document.getElementById('preset-list').appendChild(chip);
     }
 
     function initDSP() {
@@ -228,6 +253,9 @@
     function next() { if(playlist.length) play((cur + 1) % playlist.length); }
     function prev() { if(playlist.length) play((cur - 1 + playlist.length) % playlist.length); }
     document.addEventListener('mousedown', () => { if(aCtx && aCtx.state === 'suspended') aCtx.resume(); });
+    
+    const custom = JSON.parse(localStorage.getItem('mediamind_custom') || '{}');
+    Object.keys(custom).forEach(k => addCustomChip(k, custom[k]));
 </script>
 
 </body>
