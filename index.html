@@ -95,10 +95,11 @@
 
     <div class="controls-row">
         <button class="neu-btn" onclick="openMedia()"><svg width="20" height="20" fill="#333" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></button>
-        <button class="neu-btn" onclick="importDriveFolder()"><svg width="20" height="20" fill="#333" viewBox="0 0 24 24"><path d="M7.71 3.5L1.15 15l3.43 6l6.55-11.5M9.73 15L6.3 21h12.82l3.43-6M11.59 3.5L15 9.5l6.56 11.5l3.43-6L18.41 3.5"/></svg></button>
+        
         <button class="neu-btn" onclick="prev()"><svg width="20" height="20" fill="#333" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
         <button class="neu-btn play-toggle" onclick="toggle()"><svg id="pIcon" width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
         <button class="neu-btn" onclick="next()"><svg width="20" height="20" fill="#333" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg></button>
+        
         <button id="shuffleBtn" class="neu-btn" onclick="toggleShuffle()"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
         
         <div class="vol-container">
@@ -142,7 +143,7 @@
         'Loudness': [7,5,1,0,-2,0,2,4,6,8,8]
     };
 
-    function formatTime(s) { let m = Math.floor(s/60), sc = Math.floor(s%60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
+    function formatTime(s) { let m = Math.floor(s / 60), sc = Math.floor(s % 60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
 
     function toggleFullscreen() { if (!document.fullscreenElement) stage.requestFullscreen(); else document.exitFullscreen(); }
 
@@ -165,19 +166,12 @@
         } catch (e) {}
     }
 
-    function importDriveFolder() {
-        const input = prompt("Paste Google Drive IDs (separated by commas):");
-        if (!input) return;
-        playlist = input.split(',').map(id => ({ name: "Cloud File", type: "video/mp4", src: `https://docs.google.com/uc?id=${id.trim()}&export=download&confirm=t` }));
-        if(playlist.length > 0) play(0);
-    }
-
     function play(i) {
         cur = i; const item = playlist[i]; stage.classList.remove('collapsed');
         const vjsEl = document.querySelector('.video-js');
-        const isVideo = item.type.includes('video') || item.src.includes('uc?');
+        const isVideo = item.type.includes('video');
         vjsEl.classList.toggle('video-active', isVideo);
-        player.src({ type: isVideo ? 'video/mp4' : item.type, src: item.src });
+        player.src({ type: item.type, src: item.src });
         player.load(); player.play().then(() => { if(!aCtx) initDSP(); });
     }
 
