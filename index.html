@@ -3,30 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediaMind v6.0 | Custom Manual Presets</title>
+    <title>MediaMind v6.1 | Master Fix</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
     
     <style>
         :root {
-            --green: #2ecc71;
-            --white: #FFFFFF;
-            --dark-console: #1a1a1a;
-            --cream-btn: #fdfcf8;
-            --gold: #D4AF37;
-            --blue-slider: #007bff;
+            --green: #2ecc71; --white: #FFFFFF; --dark-console: #1a1a1a;
+            --cream-btn: #fdfcf8; --gold: #D4AF37; --blue-slider: #007bff;
             --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body { background-color: var(--white); font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
 
-        /* --- GLOWING CONSOLE --- */
         .master-console {
             width: 95vw; max-width: 1050px; height: auto; max-height: 98vh;
             background: var(--dark-console); border-radius: 35px; padding: 18px;
             position: relative; display: flex; flex-direction: column; gap: 12px;
-            overflow: hidden; z-index: 1; transition: var(--transition);
+            overflow: hidden; z-index: 1;
         }
 
         .master-console::before {
@@ -42,48 +37,39 @@
 
         @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* --- STAGE --- */
-        .stage-area { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 20px; position: relative; overflow: hidden; border: 2px solid #333; }
+        .stage-area { width: 100%; aspect-ratio: 21 / 9; background: #000; border-radius: 20px; position: relative; overflow: hidden; border: 2px solid #333; transition: var(--transition); }
         .stage-area.collapsed { height: 0; opacity: 0; margin: 0; }
 
         #visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
         .video-js { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 5; opacity: 0; visibility: hidden; }
         .video-active { opacity: 1 !important; visibility: visible !important; }
 
-        /* --- PRESET SYSTEM --- */
-        .preset-container { display: flex; flex-direction: column; gap: 8px; }
-        .preset-bar { display: flex; gap: 8px; overflow-x: auto; padding: 5px 10px; scrollbar-width: none; justify-content: center; }
-        .preset-bar::-webkit-scrollbar { display: none; }
+        /* --- RESTORED SEEKBAR & OVERLAY --- */
+        .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 20; display: flex; flex-direction: column; gap: 5px; }
+        #seekbar { -webkit-appearance: none; width: 100%; height: 5px; background: rgba(255,255,255,0.2); outline: none; cursor: pointer; border-radius: 5px; }
+        #seekbar::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--gold); border-radius: 50%; border: 2px solid white; }
         
-        .preset-chip { background: #2a2a2a; color: #eee; border: 1px solid #444; padding: 8px 16px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-        .preset-chip.active { background: var(--gold); color: #000; font-weight: bold; border-color: var(--gold); }
-        
-        /* Manual Slots Styling */
-        .manual-slots { display: flex; gap: 8px; justify-content: center; margin-top: 2px; }
-        .manual-chip { background: #1a1a1a; color: var(--gold); border: 1px dashed var(--gold); padding: 5px 12px; border-radius: 15px; font-size: 0.6rem; cursor: pointer; font-weight: bold; }
+        .overlay-bottom { display: flex; justify-content: space-between; align-items: center; color: white; font-size: 0.7rem; font-family: monospace; }
+
+        .preset-bar { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; justify-content: center; }
+        .preset-chip { background: #2a2a2a; color: #eee; border: 1px solid #444; padding: 6px 16px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; white-space: nowrap; }
+        .preset-chip.active { background: var(--gold); color: #000; font-weight: bold; }
+
+        .manual-bar { display: flex; gap: 10px; justify-content: center; margin-top: -5px; }
+        .manual-chip { background: transparent; color: var(--gold); border: 1px dashed var(--gold); padding: 4px 12px; border-radius: 15px; font-size: 0.6rem; cursor: pointer; }
         .manual-chip.active { background: var(--gold); color: #000; border-style: solid; }
-        .save-hint { font-size: 0.5rem; color: #666; text-align: center; margin-top: -5px; }
 
-        /* --- CONTROLS --- */
-        .controls-row { display: flex; justify-content: center; gap: 12px; padding: 5px 0; align-items: center; flex-wrap: wrap; }
+        .controls-row { display: flex; justify-content: center; gap: 15px; padding: 5px 0; align-items: center; }
         .neu-btn { width: 45px; height: 45px; background: var(--cream-btn); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; box-shadow: 0 8px 15px rgba(0,0,0,0.4); cursor: pointer; }
-        .neu-btn.play-toggle { background: var(--green); width: 50px; height: 50px; color: white; }
+        .neu-btn.play-toggle { background: var(--green); width: 55px; height: 55px; color: white; }
 
-        .vol-container { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; }
-        #master-vol { -webkit-appearance: none; width: 60px; height: 3px; background: #444; }
+        .vol-container { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; }
+        #master-vol { -webkit-appearance: none; width: 80px; height: 3px; background: #444; }
 
-        /* --- 12-BAND DSP --- */
         .dsp-panel { background: #fff; border-radius: 20px; padding: 15px 10px; display: flex; gap: 5px; justify-content: center; overflow-x: auto; box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); }
-        .eq-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 58px; }
-        .eq-slider { -webkit-appearance: slider-vertical; width: 4px; height: 75px; background: #ddd; }
-        .eq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--blue-slider); border-radius: 50%; border: 2px solid white; }
-        .eq-label { font-size: 0.5rem; color: #444; font-weight: 800; text-transform: uppercase; }
-
-        @media (max-width: 600px) {
-            .master-console { width: 100vw; height: 100vh; border-radius: 0; padding: 10px; }
-            .vol-container { display: none; }
-            .preset-bar, .dsp-panel { justify-content: flex-start; }
-        }
+        .eq-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 62px; }
+        .eq-slider { -webkit-appearance: slider-vertical; width: 4px; height: 75px; background: #ddd; cursor: pointer; }
+        .eq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--blue-slider); border-radius: 50%; border: 2px solid white; }
     </style>
 </head>
 <body>
@@ -92,104 +78,115 @@
     <div class="stage-area collapsed" id="stage">
         <canvas id="visualizer"></canvas>
         <video id="vjs_engine" class="video-js" crossorigin="anonymous" playsinline></video>
-        <div class="playback-overlay" style="position:absolute; bottom:0; width:100%; padding:10px; background:linear-gradient(transparent, rgba(0,0,0,0.8));">
-            <input type="range" id="seekbar" min="0" max="100" value="0" style="width:100%">
-            <div style="display:flex; justify-content:space-between; color:white; font-size:0.7rem; margin-top:5px;">
+        <div class="playback-overlay">
+            <input type="range" id="seekbar" min="0" max="100" value="0">
+            <div class="overlay-bottom">
                 <span id="cur-time">0:00</span>
-                <button onclick="toggleFullscreen()" style="background:none; border:none; color:var(--gold); font-weight:bold; cursor:pointer;">FS</button>
+                <button onclick="toggleFullscreen()" style="background:none; border:none; color:var(--gold); font-size:0.6rem; font-weight:bold; cursor:pointer;">FULLSCREEN</button>
+                <span id="dur-time">0:00</span>
             </div>
         </div>
     </div>
 
-    <div class="preset-container">
-        <div class="preset-bar">
-            <div class="preset-chip active" onclick="applyPreset('Flat')">Flat</div>
-            <div class="preset-chip" onclick="applyPreset('Bass Boost')">Bass Boost</div>
-            <div class="preset-chip" onclick="applyPreset('Acoustic')">Acoustic</div>
-            <div class="preset-chip" onclick="applyPreset('Electronic')">Electronic</div>
-            <div class="preset-chip" onclick="applyPreset('Clear Vocals')">Vocals</div>
-            <div class="preset-chip" onclick="applyPreset('Loudness')">Loudness</div>
-        </div>
-        <div class="manual-slots">
-            <div id="m-slot-1" class="manual-chip" onclick="handleManual(1)">M1</div>
-            <div id="m-slot-2" class="manual-chip" onclick="handleManual(2)">M2</div>
-            <div id="m-slot-3" class="manual-chip" onclick="handleManual(3)">M3</div>
-        </div>
-        <div class="save-hint">Click to Load | Double-Click to Save Current EQ</div>
+    <div class="preset-bar">
+        <div class="preset-chip active" onclick="applyPreset('Flat')">Flat</div>
+        <div class="preset-chip" onclick="applyPreset('Bass Boost')">Bass Boost</div>
+        <div class="preset-chip" onclick="applyPreset('Acoustic')">Acoustic</div>
+        <div class="preset-chip" onclick="applyPreset('Electronic')">Electronic</div>
+        <div class="preset-chip" onclick="applyPreset('Vocals')">Vocals</div>
+        <div class="preset-chip" onclick="applyPreset('Loudness')">Loudness</div>
+    </div>
+
+    <div class="manual-bar">
+        <div id="m1" class="manual-chip" onclick="handleManual(1)">M1 (Hold to Save)</div>
+        <div id="m2" class="manual-chip" onclick="handleManual(2)">M2 (Hold to Save)</div>
+        <div id="m3" class="manual-chip" onclick="handleManual(3)">M3 (Hold to Save)</div>
     </div>
 
     <div class="controls-row">
-        <button class="neu-btn" onclick="openMedia()"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></button>
-        <button class="neu-btn" onclick="prev()"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-        <button class="neu-btn play-toggle" onclick="toggle()"><svg id="pIcon" width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-        <button class="neu-btn" onclick="next()"><svg width="18" height="18" fill="#333" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg></button>
-        <button id="shuffleBtn" class="neu-btn" onclick="toggleShuffle()"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
+        <button class="neu-btn" onclick="openMedia()"><svg width="20" height="20" fill="#333" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></button>
+        <button class="neu-btn" onclick="prev()"><svg width="20" height="20" fill="#333" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button class="neu-btn play-toggle" onclick="toggle()">
+            <svg id="pIcon" width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="neu-btn" onclick="next()"><svg width="20" height="20" fill="#333" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg></button>
+        <button id="shuffleBtn" class="neu-btn" onclick="toggleShuffle()"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
         <div class="vol-container"><input type="range" id="master-vol" min="0" max="1" step="0.01" value="0.8"></div>
     </div>
 
     <div class="dsp-panel">
-        <div class="eq-col"><input type="range" class="eq-slider" id="pre-amp" min="0" max="2" step="0.1" value="1"><span class="eq-label">PRE</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="32" min="-12" max="12" value="0"><span class="eq-label">32Hz</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="64" min="-12" max="12" value="0"><span class="eq-label">64Hz</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="125" min="-12" max="12" value="0"><span class="eq-label">125</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="250" min="-12" max="12" value="0"><span class="eq-label">250</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="500" min="-12" max="12" value="0"><span class="eq-label">500</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="1000" min="-12" max="12" value="0"><span class="eq-label">1k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="2000" min="-12" max="12" value="0"><span class="eq-label">2k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="4000" min="-12" max="12" value="0"><span class="eq-label">4k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="8000" min="-12" max="12" value="0"><span class="eq-label">8k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="12000" min="-12" max="12" value="0"><span class="eq-label">12k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="16000" min="-12" max="12" value="0"><span class="eq-label">16k</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider" id="pre-amp" min="0" max="2" step="0.1" value="1"><span style="font-size:0.5rem">PRE</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="32" min="-12" max="12" value="0"><span style="font-size:0.5rem">32Hz</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="64" min="-12" max="12" value="0"><span style="font-size:0.5rem">64Hz</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="125" min="-12" max="12" value="0"><span style="font-size:0.5rem">125</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="250" min="-12" max="12" value="0"><span style="font-size:0.5rem">250</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="500" min="-12" max="12" value="0"><span style="font-size:0.5rem">500</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="1000" min="-12" max="12" value="0"><span style="font-size:0.5rem">1k</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="2000" min="-12" max="12" value="0"><span style="font-size:0.5rem">2k</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="4000" min="-12" max="12" value="0"><span style="font-size:0.5rem">4k</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="8000" min="-12" max="12" value="0"><span style="font-size:0.5rem">8k</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="12000" min="-12" max="12" value="0"><span style="font-size:0.5rem">12k</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="16000" min="-12" max="12" value="0"><span style="font-size:0.5rem">16k</span></div>
     </div>
 </div>
 
 <script>
     const player = videojs('vjs_engine', { controls: false });
     const stage = document.getElementById('stage'), sk = document.getElementById('seekbar');
-    let playlist = [], cur = 0, isShuffle = false, aCtx, anlyzr, filters = {}, lastClick = 0;
+    const curT = document.getElementById('cur-time'), durT = document.getElementById('dur-time');
+    let playlist = [], cur = 0, isShuffle = false, aCtx, anlyzr, filters = {}, pressTimer;
 
     const presets = {
-        'Flat': [0,0,0,0,0,0,0,0,0,0,0], 'Bass Boost': [8,7,5,3,1,0,0,0,1,2,3],
-        'Acoustic': [4,3,2,3,4,3,4,5,4,3,2], 'Electronic': [6,5,2,1,3,4,2,3,5,7,7],
-        'Clear Vocals': [-3,-2,0,2,4,6,4,2,0,-1,-2], 'Loudness': [7,5,1,0,-2,0,2,4,6,8,8]
+        'Flat': [0,0,0,0,0,0,0,0,0,0,0,0], 'Bass Boost': [8,7,5,3,1,0,0,0,1,2,3,4],
+        'Acoustic': [4,3,2,3,4,3,4,5,4,3,2,1], 'Electronic': [6,5,2,1,3,4,2,3,5,7,7,7],
+        'Clear Vocals': [-3,-2,0,2,4,6,4,2,0,-1,-2,-3], 'Loudness': [7,5,1,0,-2,0,2,4,6,8,8,8]
     };
 
-    // --- MANUAL SAVING LOGIC ---
-    function handleManual(slot) {
-        const now = Date.now();
-        if (now - lastClick < 300) saveManual(slot); // Double-click to save
-        else loadManual(slot); // Single-click to load
-        lastClick = now;
+    function formatTime(s) { let m=Math.floor(s/60), sc=Math.floor(s%60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
+
+    // --- ICON & PLAYER FIXES ---
+    function updateIcon(playing) {
+        document.getElementById('pIcon').innerHTML = playing ? 
+            `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>` : `<path d="M8 5v14l11-7z"/>`;
     }
 
-    function saveManual(slot) {
-        const values = Array.from(document.querySelectorAll('.band')).map(s => s.value);
-        localStorage.setItem(`mm_manual_${slot}`, JSON.stringify(values));
-        alert(`Current EQ saved to M${slot}`);
-        loadManual(slot);
+    function toggle() {
+        if (player.paused()) { player.play(); updateIcon(true); stage.classList.remove('collapsed'); }
+        else { player.pause(); updateIcon(false); }
     }
 
-    function loadManual(slot) {
-        const saved = localStorage.getItem(`mm_manual_${slot}`);
-        if (!saved) return alert(`M${slot} is empty. Adjust EQ and Double-Click to save.`);
-        const values = JSON.parse(saved);
-        document.querySelectorAll('.band').forEach((s, i) => {
-            s.value = values[i] || 0;
-            if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i] || 0;
-        });
-        document.querySelectorAll('.manual-chip, .preset-chip').forEach(c => c.classList.remove('active'));
-        document.getElementById(`m-slot-${slot}`).classList.add('active');
+    // --- SEEKBAR LOGIC ---
+    player.on('timeupdate', () => {
+        const val = (player.currentTime() / player.duration()) * 100;
+        sk.value = val || 0;
+        curT.innerText = formatTime(player.currentTime());
+        durT.innerText = formatTime(player.duration() || 0);
+    });
+    sk.oninput = () => player.currentTime((sk.value/100) * player.duration());
+
+    // --- MANUAL SAVING ---
+    function handleManual(n) {
+        const saved = localStorage.getItem(`mm_v6_${n}`);
+        if(saved) {
+            const values = JSON.parse(saved);
+            document.querySelectorAll('.band').forEach((s, i) => {
+                s.value = values[i]; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i];
+            });
+            document.querySelectorAll('.manual-chip, .preset-chip').forEach(c => c.classList.remove('active'));
+            document.getElementById(`m${n}`).classList.add('active');
+        } else { alert("Long-press the button to save current EQ here."); }
     }
 
-    function applyPreset(name) {
-        const v = presets[name];
-        document.querySelectorAll('.band').forEach((s, i) => {
-            s.value = v[i] || 0; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = v[i] || 0;
-        });
-        document.querySelectorAll('.manual-chip, .preset-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
-    }
+    document.querySelectorAll('.manual-chip').forEach(chip => {
+        chip.onmousedown = () => { pressTimer = window.setTimeout(() => {
+            const vals = Array.from(document.querySelectorAll('.band')).map(s => s.value);
+            localStorage.setItem(`mm_v6_${chip.id.replace('m','')}`, JSON.stringify(vals));
+            alert("EQ Preset Saved!");
+        }, 800); };
+        chip.onmouseup = () => clearTimeout(pressTimer);
+    });
 
-    // --- PLAYER CORE ---
+    // --- CORE LOGIC ---
     async function openMedia() {
         try {
             const h = await window.showDirectoryPicker(); playlist = [];
@@ -204,24 +201,20 @@
         cur = i; const item = playlist[i]; stage.classList.remove('collapsed');
         document.querySelector('.video-js').classList.toggle('video-active', item.type.includes('video'));
         player.src({ type: item.type, src: item.src });
-        player.load(); player.play().then(() => { if(!aCtx) initDSP(); });
+        player.load(); player.play().then(() => { updateIcon(true); if(!aCtx) initDSP(); });
     }
 
-    function toggle() { if (player.paused()) player.play(); else player.pause(); }
-    function toggleFullscreen() { if (!document.fullscreenElement) stage.requestFullscreen(); else document.exitFullscreen(); }
-
     function initDSP() {
-        if (aCtx) return;
-        aCtx = new (AudioContext || webkitAudioContext)();
+        if (aCtx) return; aCtx = new (AudioContext || webkitAudioContext)();
         const src = aCtx.createMediaElementSource(document.querySelector('video'));
         anlyzr = aCtx.createAnalyser(); anlyzr.fftSize = 256;
-        let lastNode = src;
+        let last = src;
         document.querySelectorAll('.band').forEach(slider => {
             const f = aCtx.createBiquadFilter(); f.type = "peaking"; f.frequency.value = slider.dataset.f;
-            lastNode.connect(f); lastNode = f; filters[slider.dataset.f] = f;
+            last.connect(f); last = f; filters[slider.dataset.f] = f;
             slider.oninput = (e) => { f.gain.value = e.target.value; };
         });
-        const pre = aCtx.createGain(); lastNode.connect(pre); pre.connect(anlyzr); anlyzr.connect(aCtx.destination);
+        const pre = aCtx.createGain(); last.connect(pre); pre.connect(anlyzr); anlyzr.connect(aCtx.destination);
         document.getElementById('pre-amp').oninput = (e) => { pre.gain.value = e.target.value; };
         document.getElementById('master-vol').oninput = (e) => { player.volume(e.target.value); };
         loop();
@@ -234,16 +227,20 @@
         const ctx = cvs.getContext('2d'); ctx.clearRect(0,0,cvs.width,cvs.height);
         let x = 0; const bw = (cvs.width / d.length) * 2;
         for(let i=0; i<d.length; i++) {
-            ctx.fillStyle = '#2ecc71'; ctx.fillRect(x, cvs.height - (d[i]/2.5), bw, d[i]/2.5); x += bw + 2;
+            ctx.fillStyle = '#2ecc71'; ctx.fillRect(x, cvs.height - (d[i]/2), bw, d[i]/2); x += bw + 2;
         }
+    }
+
+    function applyPreset(name) {
+        const v = presets[name];
+        document.querySelectorAll('.band').forEach((s, i) => { s.value = v[i] || 0; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = v[i] || 0; });
+        document.querySelectorAll('.preset-chip, .manual-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
     }
 
     function toggleShuffle() { isShuffle = !isShuffle; document.getElementById('shuffleBtn').style.color = isShuffle ? 'var(--green)' : '#fff'; }
     function next() { let idx = isShuffle ? Math.floor(Math.random() * playlist.length) : (cur + 1) % playlist.length; play(idx); }
     function prev() { play((cur - 1 + playlist.length) % playlist.length); }
-    player.on('timeupdate', () => { sk.value = (player.currentTime() / player.duration()) * 100 || 0; });
-    sk.oninput = () => player.currentTime((sk.value/100)*player.duration());
-    document.addEventListener('mousedown', () => { if(aCtx) aCtx.resume(); });
+    function toggleFullscreen() { if (!document.fullscreenElement) stage.requestFullscreen(); else document.exitFullscreen(); }
 </script>
 </body>
 </html>
