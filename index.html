@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediaMind v6.2 | Master UI Fix</title>
+    <title>MediaMind v6.3 | Compatibility Master</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
@@ -37,33 +37,27 @@
 
         @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* --- FIXED STAGE AREA --- */
+        /* --- STAGE AREA (SCALING FIX) --- */
         .stage-area { 
             width: 100%; 
-            height: 400px; /* Solid height to prevent vertical overflow */
+            height: 380px; 
             background: #000; 
             border-radius: 20px; 
             position: relative; 
             overflow: hidden; 
             border: 2px solid #333; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
         }
         .stage-area.collapsed { height: 0; opacity: 0; margin: 0; border: none; }
 
         #visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
         
-        /* Video.js scaling fix */
         .video-js { 
-            position: relative !important; 
-            width: 100% !important; 
-            height: 100% !important; 
-            z-index: 5; 
-            opacity: 0; 
-            visibility: hidden; 
+            width: 100% !important; height: 100% !important; 
+            z-index: 5; opacity: 0; visibility: hidden; 
         }
-        .video-js video { object-fit: contain !important; } /* Force video to stay inside bounds */
+        /* Fix for vertical videos overflowing */
+        .vjs-tech { object-fit: contain !important; }
         .video-active { opacity: 1 !important; visibility: visible !important; }
 
         .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: rgba(0,0,0,0.7); z-index: 20; display: flex; flex-direction: column; gap: 5px; }
@@ -151,11 +145,11 @@
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="16000" min="-12" max="12" value="0"></div>
     </div>
 
-    <div class="brand-footer"><b style="color:var(--gold); font-size:1.1rem;">MediaMind v6.2</b><span style="font-size:0.55rem; color:#888;">POWERED BY INFRAMIND</span></div>
+    <div class="brand-footer"><b style="color:var(--gold); font-size:1.1rem;">MediaMind v6.3</b><span style="font-size:0.55rem; color:#888;">POWERED BY INFRAMIND</span></div>
 </div>
 
 <script>
-    const player = videojs('vjs_engine', { controls: false });
+    const player = videojs('vjs_engine', { controls: false, techOrder: ['html5'] });
     const stage = document.getElementById('stage'), sk = document.getElementById('seekbar');
     const curT = document.getElementById('cur-time'), durT = document.getElementById('dur-time');
     let playlist = [], cur = 0, isShuffle = false, aCtx, anlyzr, filters = {}, pressTimer;
@@ -167,14 +161,10 @@
     };
 
     function formatTime(s) { let m=Math.floor(s/60), sc=Math.floor(s%60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
-
-    function updateIcon(playing) {
-        document.getElementById('pIcon').innerHTML = playing ? 
-            `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>` : `<path d="M8 5v14l11-7z"/>`;
-    }
+    function updateIcon(playing) { document.getElementById('pIcon').innerHTML = playing ? `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>` : `<path d="M8 5v14l11-7z"/>`; }
 
     function toggle() {
-        if (player.paused()) { player.play(); updateIcon(true); stage.classList.remove('collapsed'); }
+        if (player.paused()) { player.play(); updateIcon(true); }
         else { player.pause(); updateIcon(false); }
     }
 
@@ -185,42 +175,32 @@
     });
     sk.oninput = () => player.currentTime((sk.value/100) * player.duration());
 
-    function handleManual(n) {
-        const saved = localStorage.getItem(`mm_v6_${n}`);
-        if(saved) {
-            const values = JSON.parse(saved);
-            document.querySelectorAll('.band').forEach((s, i) => {
-                s.value = values[i]; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i];
-            });
-            document.querySelectorAll('.manual-chip, .preset-chip').forEach(c => c.classList.remove('active'));
-            document.getElementById(`m${n}`).classList.add('active');
-        } else { alert("Long-press to save."); }
-    }
-
-    document.querySelectorAll('.manual-chip').forEach(chip => {
-        chip.onmousedown = () => { pressTimer = window.setTimeout(() => {
-            const vals = Array.from(document.querySelectorAll('.band')).map(s => s.value);
-            localStorage.setItem(`mm_v6_${chip.id.replace('m','')}`, JSON.stringify(vals));
-            alert("Saved!");
-        }, 800); };
-        chip.onmouseup = () => clearTimeout(pressTimer);
-    });
-
     async function openMedia() {
         try {
             const h = await window.showDirectoryPicker(); playlist = [];
             for await (const e of h.values()) if (e.kind === 'file') {
-                const f = await e.getFile(); playlist.push({ name: f.name, type: f.type, src: URL.createObjectURL(f) });
+                const f = await e.getFile(); 
+                // Detection Fix: Forcing video type if it's a common media extension
+                let type = f.type;
+                if(!type && f.name.endsWith('.mkv')) type = 'video/x-matroska';
+                playlist.push({ name: f.name, type: type || 'video/mp4', src: URL.createObjectURL(f) });
             }
             if(playlist.length > 0) play(0);
-        } catch (e) {}
+        } catch (e) { alert("Please re-select the folder to grant permission."); }
     }
 
     function play(i) {
+        if(!playlist[i]) return;
         cur = i; const item = playlist[i]; stage.classList.remove('collapsed');
-        document.querySelector('.video-js').classList.toggle('video-active', true);
+        document.querySelector('.video-js').classList.add('video-active');
         player.src({ type: item.type, src: item.src });
-        player.load(); player.play().then(() => { updateIcon(true); if(!aCtx) initDSP(); });
+        player.load();
+        player.play().then(() => { updateIcon(true); if(!aCtx) initDSP(); })
+        .catch(err => {
+            console.warn("Format error, retrying as generic...");
+            player.src({ type: 'video/mp4', src: item.src });
+            player.play();
+        });
     }
 
     function initDSP() {
@@ -252,8 +232,27 @@
     function applyPreset(name) {
         const v = presets[name];
         document.querySelectorAll('.band').forEach((s, i) => { s.value = v[i] || 0; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = v[i] || 0; });
-        document.querySelectorAll('.preset-chip, .manual-chip').forEach(c => c.classList.toggle('active', c.innerText === name));
+        document.querySelectorAll('.preset-chip, .manual-chip').forEach(c => c.classList.toggle('active', c.innerText === name || c.id === name));
     }
+
+    function handleManual(n) {
+        const saved = localStorage.getItem(`mm_v6_${n}`);
+        if(saved) {
+            const values = JSON.parse(saved);
+            document.querySelectorAll('.band').forEach((s, i) => { s.value = values[i]; if(filters[s.dataset.f]) filters[s.dataset.f].gain.value = values[i]; });
+            document.querySelectorAll('.manual-chip, .preset-chip').forEach(c => c.classList.remove('active'));
+            document.getElementById(`m${n}`).classList.add('active');
+        }
+    }
+
+    document.querySelectorAll('.manual-chip').forEach(chip => {
+        chip.onmousedown = () => { pressTimer = window.setTimeout(() => {
+            const vals = Array.from(document.querySelectorAll('.band')).map(s => s.value);
+            localStorage.setItem(`mm_v6_${chip.id.replace('m','')}`, JSON.stringify(vals));
+            alert("Saved!");
+        }, 800); };
+        chip.onmouseup = () => clearTimeout(pressTimer);
+    });
 
     function toggleShuffle() { isShuffle = !isShuffle; document.getElementById('shuffleBtn').style.color = isShuffle ? 'var(--green)' : '#fff'; }
     function next() { let idx = isShuffle ? Math.floor(Math.random() * playlist.length) : (cur + 1) % playlist.length; play(idx); }
