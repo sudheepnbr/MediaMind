@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediaMind v6.1 | Master Fix</title>
+    <title>MediaMind v6.2 | Master UI Fix</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
@@ -37,14 +37,36 @@
 
         @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .stage-area { width: 100%; aspect-ratio: 21 / 9; background: #000; border-radius: 20px; position: relative; overflow: hidden; border: 2px solid #333; transition: var(--transition); }
-        .stage-area.collapsed { height: 0; opacity: 0; margin: 0; }
+        /* --- FIXED STAGE AREA --- */
+        .stage-area { 
+            width: 100%; 
+            height: 400px; /* Solid height to prevent vertical overflow */
+            background: #000; 
+            border-radius: 20px; 
+            position: relative; 
+            overflow: hidden; 
+            border: 2px solid #333; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stage-area.collapsed { height: 0; opacity: 0; margin: 0; border: none; }
 
         #visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        .video-js { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 5; opacity: 0; visibility: hidden; }
+        
+        /* Video.js scaling fix */
+        .video-js { 
+            position: relative !important; 
+            width: 100% !important; 
+            height: 100% !important; 
+            z-index: 5; 
+            opacity: 0; 
+            visibility: hidden; 
+        }
+        .video-js video { object-fit: contain !important; } /* Force video to stay inside bounds */
         .video-active { opacity: 1 !important; visibility: visible !important; }
 
-        .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 20; display: flex; flex-direction: column; gap: 5px; }
+        .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: rgba(0,0,0,0.7); z-index: 20; display: flex; flex-direction: column; gap: 5px; }
         #seekbar { -webkit-appearance: none; width: 100%; height: 5px; background: rgba(255,255,255,0.2); outline: none; cursor: pointer; border-radius: 5px; }
         #seekbar::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--gold); border-radius: 50%; border: 2px solid white; }
         
@@ -99,9 +121,9 @@
     </div>
 
     <div class="manual-bar">
-        <div id="m1" class="manual-chip" onclick="handleManual(1)">M1 (Hold to Save)</div>
-        <div id="m2" class="manual-chip" onclick="handleManual(2)">M2 (Hold to Save)</div>
-        <div id="m3" class="manual-chip" onclick="handleManual(3)">M3 (Hold to Save)</div>
+        <div id="m1" class="manual-chip" onclick="handleManual(1)">M1</div>
+        <div id="m2" class="manual-chip" onclick="handleManual(2)">M2</div>
+        <div id="m3" class="manual-chip" onclick="handleManual(3)">M3</div>
     </div>
 
     <div class="controls-row">
@@ -116,20 +138,20 @@
     </div>
 
     <div class="dsp-panel">
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="32" min="-12" max="12" value="0"><span style="font-size:0.5rem">32</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="64" min="-12" max="12" value="0"><span style="font-size:0.5rem">64</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="125" min="-12" max="12" value="0"><span style="font-size:0.5rem">125</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="250" min="-12" max="12" value="0"><span style="font-size:0.5rem">250</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="500" min="-12" max="12" value="0"><span style="font-size:0.5rem">500</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="1000" min="-12" max="12" value="0"><span style="font-size:0.5rem">1k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="2000" min="-12" max="12" value="0"><span style="font-size:0.5rem">2k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="4000" min="-12" max="12" value="0"><span style="font-size:0.5rem">4k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="8000" min="-12" max="12" value="0"><span style="font-size:0.5rem">8k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="12000" min="-12" max="12" value="0"><span style="font-size:0.5rem">12k</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="16000" min="-12" max="12" value="0"><span style="font-size:0.5rem">16k</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="32" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="64" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="125" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="250" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="500" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="1000" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="2000" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="4000" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="8000" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="12000" min="-12" max="12" value="0"></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="16000" min="-12" max="12" value="0"></div>
     </div>
 
-    <div class="brand-footer"><b style="color:var(--gold); font-size:1.1rem;">MediaMind v6.1</b><span style="font-size:0.55rem; color:#888;">POWERED BY INFRAMIND</span></div>
+    <div class="brand-footer"><b style="color:var(--gold); font-size:1.1rem;">MediaMind v6.2</b><span style="font-size:0.55rem; color:#888;">POWERED BY INFRAMIND</span></div>
 </div>
 
 <script>
@@ -157,8 +179,7 @@
     }
 
     player.on('timeupdate', () => {
-        const val = (player.currentTime() / player.duration()) * 100;
-        sk.value = val || 0;
+        sk.value = (player.currentTime() / player.duration()) * 100 || 0;
         curT.innerText = formatTime(player.currentTime());
         durT.innerText = formatTime(player.duration() || 0);
     });
@@ -173,14 +194,14 @@
             });
             document.querySelectorAll('.manual-chip, .preset-chip').forEach(c => c.classList.remove('active'));
             document.getElementById(`m${n}`).classList.add('active');
-        } else { alert("Long-press the button to save current EQ here."); }
+        } else { alert("Long-press to save."); }
     }
 
     document.querySelectorAll('.manual-chip').forEach(chip => {
         chip.onmousedown = () => { pressTimer = window.setTimeout(() => {
             const vals = Array.from(document.querySelectorAll('.band')).map(s => s.value);
             localStorage.setItem(`mm_v6_${chip.id.replace('m','')}`, JSON.stringify(vals));
-            alert("EQ Preset Saved!");
+            alert("Saved!");
         }, 800); };
         chip.onmouseup = () => clearTimeout(pressTimer);
     });
@@ -197,7 +218,7 @@
 
     function play(i) {
         cur = i; const item = playlist[i]; stage.classList.remove('collapsed');
-        document.querySelector('.video-js').classList.toggle('video-active', item.type.includes('video'));
+        document.querySelector('.video-js').classList.toggle('video-active', true);
         player.src({ type: item.type, src: item.src });
         player.load(); player.play().then(() => { updateIcon(true); if(!aCtx) initDSP(); });
     }
