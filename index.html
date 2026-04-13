@@ -44,7 +44,6 @@
         .video-js { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 5; opacity: 0; visibility: hidden; }
         .video-active { opacity: 1 !important; visibility: visible !important; }
 
-        /* --- RESTORED SEEKBAR & OVERLAY --- */
         .playback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 20; display: flex; flex-direction: column; gap: 5px; }
         #seekbar { -webkit-appearance: none; width: 100%; height: 5px; background: rgba(255,255,255,0.2); outline: none; cursor: pointer; border-radius: 5px; }
         #seekbar::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--gold); border-radius: 50%; border: 2px solid white; }
@@ -70,6 +69,8 @@
         .eq-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 62px; }
         .eq-slider { -webkit-appearance: slider-vertical; width: 4px; height: 75px; background: #ddd; cursor: pointer; }
         .eq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--blue-slider); border-radius: 50%; border: 2px solid white; }
+
+        .brand-footer { background: var(--cream-btn); border-radius: 15px; padding: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; height: 40px; margin-top: 5px;}
     </style>
 </head>
 <body>
@@ -115,9 +116,8 @@
     </div>
 
     <div class="dsp-panel">
-        <div class="eq-col"><input type="range" class="eq-slider" id="pre-amp" min="0" max="2" step="0.1" value="1"><span style="font-size:0.5rem">PRE</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="32" min="-12" max="12" value="0"><span style="font-size:0.5rem">32Hz</span></div>
-        <div class="eq-col"><input type="range" class="eq-slider band" data-f="64" min="-12" max="12" value="0"><span style="font-size:0.5rem">64Hz</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="32" min="-12" max="12" value="0"><span style="font-size:0.5rem">32</span></div>
+        <div class="eq-col"><input type="range" class="eq-slider band" data-f="64" min="-12" max="12" value="0"><span style="font-size:0.5rem">64</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="125" min="-12" max="12" value="0"><span style="font-size:0.5rem">125</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="250" min="-12" max="12" value="0"><span style="font-size:0.5rem">250</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="500" min="-12" max="12" value="0"><span style="font-size:0.5rem">500</span></div>
@@ -128,6 +128,8 @@
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="12000" min="-12" max="12" value="0"><span style="font-size:0.5rem">12k</span></div>
         <div class="eq-col"><input type="range" class="eq-slider band" data-f="16000" min="-12" max="12" value="0"><span style="font-size:0.5rem">16k</span></div>
     </div>
+
+    <div class="brand-footer"><b style="color:var(--gold); font-size:1.1rem;">MediaMind v6.1</b><span style="font-size:0.55rem; color:#888;">POWERED BY INFRAMIND</span></div>
 </div>
 
 <script>
@@ -137,14 +139,13 @@
     let playlist = [], cur = 0, isShuffle = false, aCtx, anlyzr, filters = {}, pressTimer;
 
     const presets = {
-        'Flat': [0,0,0,0,0,0,0,0,0,0,0,0], 'Bass Boost': [8,7,5,3,1,0,0,0,1,2,3,4],
-        'Acoustic': [4,3,2,3,4,3,4,5,4,3,2,1], 'Electronic': [6,5,2,1,3,4,2,3,5,7,7,7],
-        'Clear Vocals': [-3,-2,0,2,4,6,4,2,0,-1,-2,-3], 'Loudness': [7,5,1,0,-2,0,2,4,6,8,8,8]
+        'Flat': [0,0,0,0,0,0,0,0,0,0,0], 'Bass Boost': [8,7,5,3,1,0,0,0,1,2,3],
+        'Acoustic': [4,3,2,3,4,3,4,5,4,3,2], 'Electronic': [6,5,2,1,3,4,2,3,5,7,7],
+        'Clear Vocals': [-3,-2,0,2,4,6,4,2,0,-1,-2], 'Loudness': [7,5,1,0,-2,0,2,4,6,8,8]
     };
 
     function formatTime(s) { let m=Math.floor(s/60), sc=Math.floor(s%60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
 
-    // --- ICON & PLAYER FIXES ---
     function updateIcon(playing) {
         document.getElementById('pIcon').innerHTML = playing ? 
             `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>` : `<path d="M8 5v14l11-7z"/>`;
@@ -155,7 +156,6 @@
         else { player.pause(); updateIcon(false); }
     }
 
-    // --- SEEKBAR LOGIC ---
     player.on('timeupdate', () => {
         const val = (player.currentTime() / player.duration()) * 100;
         sk.value = val || 0;
@@ -164,7 +164,6 @@
     });
     sk.oninput = () => player.currentTime((sk.value/100) * player.duration());
 
-    // --- MANUAL SAVING ---
     function handleManual(n) {
         const saved = localStorage.getItem(`mm_v6_${n}`);
         if(saved) {
@@ -186,7 +185,6 @@
         chip.onmouseup = () => clearTimeout(pressTimer);
     });
 
-    // --- CORE LOGIC ---
     async function openMedia() {
         try {
             const h = await window.showDirectoryPicker(); playlist = [];
@@ -215,7 +213,6 @@
             slider.oninput = (e) => { f.gain.value = e.target.value; };
         });
         const pre = aCtx.createGain(); last.connect(pre); pre.connect(anlyzr); anlyzr.connect(aCtx.destination);
-        document.getElementById('pre-amp').oninput = (e) => { pre.gain.value = e.target.value; };
         document.getElementById('master-vol').oninput = (e) => { player.volume(e.target.value); };
         loop();
     }
